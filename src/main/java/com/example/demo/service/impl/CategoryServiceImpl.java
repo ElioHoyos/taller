@@ -3,12 +3,14 @@ package com.example.demo.service.impl;
 import com.example.demo.dao.CategoryDao;
 import com.example.demo.dao.CategoryRequestDao;
 import com.example.demo.entity.Category;
+import com.example.demo.exception.CategoryNameEmptyException;
 import com.example.demo.repository.CategoryRepository;
 import com.example.demo.service.CategoryService;
 import com.example.demo.validate.ValidateCategory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,12 +40,21 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void saveCategory(CategoryRequestDao categoryRequestDao) {
-        ValidateCategory.validateCategory(categoryRequestDao);
+        //ValidateCategory.validateCategory(categoryRequestDao);
+        // Verificar si el nombre de la categoría ya existe
+        if (categoryRepository.findByName(categoryRequestDao.getName()).isPresent()) {
+            throw new CategoryNameEmptyException("El nombre de la categoría ya existe");
+        }
+        // Validar que el nombre no esté vacío
+        if (categoryRequestDao.getName() == null || categoryRequestDao.getName().trim().isEmpty()) {
+            throw new CategoryNameEmptyException("El nombre de la categoría no debe estar vacío");
+        }
+        Boolean defaultState = true; // O false, según lo que necesites
         categoryRepository.save(Category.builder()
                 .name(categoryRequestDao.getName())
-                .state(categoryRequestDao.getState())
-                .date_modified(categoryRequestDao.getDate_modified())
-                .date_created(categoryRequestDao.getDate_created())
+                .state(defaultState)
+                .date_modified(LocalDate.now())
+                .date_created(LocalDate.now())
                 .build());
     }
 

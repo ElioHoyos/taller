@@ -14,6 +14,4 @@ public class CategoryRequestDao {
     @NotEmpty(message = "El nombre de la categoria no puede estar vacía")
     private String name;
     private Boolean state;
-    private LocalDate date_modified;
-    private LocalDate date_created;
 }
