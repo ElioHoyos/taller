@@ -27,7 +27,7 @@ public class CategoryServiceImpl implements CategoryService {
                         .date_modified(category.getDate_modified())
                         .date_created(category.getDate_created())
                         .name(category.getName())
-                        .state(category.getState())
+                        .state(category.getState() != null && category.getState() ? "Categoria Activo" : "Categoria Inactivo") // Conversión a texto
                         .id(category.getId())
                         .build())
                 .collect(Collectors.toList());

@@ -13,7 +13,7 @@ public class CategoryDao implements Serializable {
 
     private Long id;
     private String name;
-    private Boolean state;
+    private String state;
     private LocalDate date_modified;
     private LocalDate date_created;
 }
