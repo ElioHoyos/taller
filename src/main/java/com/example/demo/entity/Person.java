@@ -1,12 +1,12 @@
 package com.example.demo.entity;
-
+import com.example.demo.entity.enums.DocumentType;
+import com.example.demo.entity.enums.PersonType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
@@ -14,23 +14,21 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "article")
-public class Article {
+@Table(name = "people")
+public class Person {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String code;
+    @Enumerated(EnumType.STRING)
+    private PersonType type_person;
     private String name;
-    private String description;
-    private Long amount;
-    private BigDecimal purchase_price;
-    private LocalDate expiration_date;
+    @Enumerated(EnumType.STRING)
+    private DocumentType document_type;
+    private Long document_number;
+    private String cellphone;
+    private String email;
+    private String address;
+    private Boolean state;
     private LocalDate date_modified;
     private LocalDate date_created;
-    private Boolean state;
-
-    @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
-
 }

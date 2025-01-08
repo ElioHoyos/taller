@@ -16,5 +16,7 @@ public class ArticleRequestDao {
     private Long amount;
     private BigDecimal purchase_price;
     private LocalDate expiration_date;
+    private LocalDate date_modified;
+    private LocalDate date_created;
     private Boolean state;
 }
