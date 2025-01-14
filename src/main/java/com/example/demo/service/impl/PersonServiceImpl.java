@@ -38,7 +38,7 @@ public class PersonServiceImpl implements PersonService {
 //        }
 
         DocumentType documentType = requestDao.getDocument_type();
-        Long documentNumber = requestDao.getDocument_number();
+        String documentNumber = requestDao.getDocument_number();
 
         // Validación del tipo de documento
         switch (documentType) {

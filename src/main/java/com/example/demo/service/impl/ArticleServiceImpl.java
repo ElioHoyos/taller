@@ -49,13 +49,14 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public void saveArticleToCategory(ArticleRequestDao requestDao) {
-        List<NotFoundException> lisErrors = new ArrayList<>();
+//        List<NotFoundException> lisErrors = new ArrayList<>();
         Category category = categoryRepository.findById(requestDao.getCategory_id())
-                .orElseGet(() -> {
-                    lisErrors.add(new NotFoundException("El id Categoria no se encuentra :: "  + requestDao.getCategory_id()));
-                    return null;
-                });
-        Boolean defaultState = true; // O false, según lo que necesites
+                .orElseThrow(() -> new NotFoundException(String.format("La categoria de producto con el id %s no existe", requestDao.getCategory_id())));
+//                .orElseGet(() -> {
+//                    lisErrors.add(new NotFoundException("El id Categoria no se encuentra :: "  + requestDao.getCategory_id()));
+//                    return null;
+//                });
+//        Boolean defaultState = true; // O false, según lo que necesites
         Article article = Article.builder()
                 .category(category)
                 .code(requestDao.getCode())
@@ -66,7 +67,7 @@ public class ArticleServiceImpl implements ArticleService {
                 .expiration_date(requestDao.getExpiration_date())
                 .date_modified(LocalDate.now())
                 .date_created(LocalDate.now())
-                .state(defaultState)
+                .state(Boolean.TRUE)
                 .build();
         articleRepository.save(article);
     }

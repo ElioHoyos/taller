@@ -1,7 +1,5 @@
 package com.example.demo.exception;
-
 import lombok.Getter;
-
 import java.util.List;
 
 @Getter
