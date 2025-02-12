@@ -1,4 +1,4 @@
-package com.example.demo.dao;
+package com.example.demo.dto;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import java.time.LocalDate;
 
 @Getter
 @Builder
-public class CategoryDao implements Serializable {
+public class CategoryDto implements Serializable {
 
     private Long id;
     private String name;

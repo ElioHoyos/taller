@@ -1,8 +1,8 @@
 package com.example.demo.controller;
 
 
-import com.example.demo.dao.request.PersonRequestDao;
-import com.example.demo.service.PersonService;
+import com.example.demo.dto.request.CustomerRequestDto;
+import com.example.demo.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,14 +11,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(path = "api/v1/person")
-public class PersonController {
+public class CustomerController {
 
     @Autowired
-    private PersonService personService;
+    private CustomerService customerService;
 
     @PostMapping
-    public void savePerson(@RequestBody PersonRequestDao person){
-        personService.savePerson(person);
+    public void savePerson(@RequestBody CustomerRequestDto person){
+        customerService.savePerson(person);
     }
 
 }

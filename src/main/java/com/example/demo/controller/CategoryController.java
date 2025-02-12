@@ -1,9 +1,8 @@
 package com.example.demo.controller;
-import com.example.demo.dao.CategoryDao;
-import com.example.demo.dao.CategoryRequestDao;
+import com.example.demo.dto.CategoryDto;
+import com.example.demo.dto.request.CategoryRequestDao;
 import com.example.demo.entity.Category;
 import com.example.demo.service.CategoryService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,7 +25,7 @@ public class CategoryController {
     private CategoryService categoryService;
 
     @GetMapping("/categoryView")
-    public List<CategoryDao> getAllCategory(){
+    public List<CategoryDto> getAllCategory(){
         return categoryService.getCategories();
     }
 

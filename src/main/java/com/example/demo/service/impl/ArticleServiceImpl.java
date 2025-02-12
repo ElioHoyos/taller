@@ -1,6 +1,7 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dao.request.ArticleRequestDao;
+import com.example.demo.dto.ArticleDto;
+import com.example.demo.dto.request.ArticleRequestDto;
 import com.example.demo.entity.Article;
 import com.example.demo.entity.Category;
 import com.example.demo.exception.NotFoundException;
@@ -12,13 +13,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@RestControllerAdvice
 public class ArticleServiceImpl implements ArticleService {
 
     @Autowired
@@ -28,16 +27,20 @@ public class ArticleServiceImpl implements ArticleService {
     private CategoryRepository categoryRepository;
 
     @Override
-    public List<ArticleRequestDao> getArticles() {
+    public List<ArticleDto> getArticles() {
         return articleRepository.findAll().stream()
-                .map(article -> ArticleRequestDao.builder()
+                .map(article -> ArticleDto.builder()
+                        .id(article.getId())
+                        .category_id(article.getId())
                         .code(article.getCode())
                         .name(article.getName())
                         .description(article.getDescription())
                         .amount(article.getAmount())
+                        .sale_price(article.getSale_price())
                         .purchase_price(article.getPurchase_price())
                         .expiration_date(article.getExpiration_date())
-                        .state(article.getState())
+                        .state(article.getState()) // Este valor se usará para determinar el valor de getStateAsInt
+                        .category_name(article.getCategory().getName()) // Obtener el nombre de la categoría
                         .build())
                 .collect(Collectors.toList());
     }
@@ -48,7 +51,7 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
-    public void saveArticleToCategory(ArticleRequestDao requestDao) {
+    public void saveArticleToCategory(ArticleRequestDto requestDao) {
 //        List<NotFoundException> lisErrors = new ArrayList<>();
         Category category = categoryRepository.findById(requestDao.getCategory_id())
                 .orElseThrow(() -> new NotFoundException(String.format("La categoria de producto con el id %s no existe", requestDao.getCategory_id())));
@@ -63,6 +66,7 @@ public class ArticleServiceImpl implements ArticleService {
                 .name(requestDao.getName())
                 .description(requestDao.getDescription())
                 .amount(requestDao.getAmount())
+                .sale_price(requestDao.getSale_price())
                 .purchase_price(requestDao.getPurchase_price())
                 .expiration_date(requestDao.getExpiration_date())
                 .date_modified(LocalDate.now())
@@ -70,5 +74,10 @@ public class ArticleServiceImpl implements ArticleService {
                 .state(Boolean.TRUE)
                 .build();
         articleRepository.save(article);
+    }
+
+    @Override
+    public Optional<ArticleDto> updateArticle(Long id, ArticleDto articleDto) {
+        return Optional.empty();
     }
 }

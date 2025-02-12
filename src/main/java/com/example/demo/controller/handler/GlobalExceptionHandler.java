@@ -1,17 +1,15 @@
 package com.example.demo.controller.handler;
 
-import com.example.demo.exception.CategoryNameEmptyException;
-import com.example.demo.exception.ErrorResponse;
-import com.example.demo.exception.NotFoundException;
+import com.example.demo.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -45,6 +43,23 @@ public class GlobalExceptionHandler {
 
         // Devuelve la respuesta con el objeto ErrorResponse y el estado HTTP 400 (BAD_REQUEST)
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+//exception de segun el documento de identidad de una persona
+    @ExceptionHandler(DocumentValidationException.class)
+    public ResponseEntity<Object> handleDocumentValidationException(DocumentValidationException ex) {
+        // Crear un mapa para la respuesta
+        Map<String, List<String>> response = new HashMap<>();
+        response.put("Advertencia", ex.getErrorMessages());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    //identificar si el nombre del rol esta vacio
+    @ExceptionHandler(RolNameException.class)
+    public ResponseEntity<Map<String, String>> handleRolException(RolNameException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("Advertencia", ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
 }

@@ -1,12 +1,11 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dao.CategoryDao;
-import com.example.demo.dao.CategoryRequestDao;
+import com.example.demo.dto.CategoryDto;
+import com.example.demo.dto.request.CategoryRequestDao;
 import com.example.demo.entity.Category;
 import com.example.demo.exception.CategoryNameEmptyException;
 import com.example.demo.repository.CategoryRepository;
 import com.example.demo.service.CategoryService;
-import com.example.demo.validate.ValidateCategory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,9 +20,9 @@ public class CategoryServiceImpl implements CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
     @Override
-    public List<CategoryDao> getCategories() {
+    public List<CategoryDto> getCategories() {
         return categoryRepository.findAll().stream()
-                .map(category -> CategoryDao.builder()
+                .map(category -> CategoryDto.builder()
                         .date_modified(category.getDate_modified())
                         .date_created(category.getDate_created())
                         .name(category.getName())
@@ -49,10 +48,10 @@ public class CategoryServiceImpl implements CategoryService {
         if (categoryRequestDao.getName() == null || categoryRequestDao.getName().trim().isEmpty()) {
             throw new CategoryNameEmptyException("El nombre de la categoría no debe estar vacío");
         }
-        Boolean defaultState = true; // O false, según lo que necesites
+        //Boolean defaultState = true; // O false, según lo que necesites
         categoryRepository.save(Category.builder()
                 .name(categoryRequestDao.getName())
-                .state(defaultState)
+                .state(Boolean.TRUE)
                 .date_modified(LocalDate.now())
                 .date_created(LocalDate.now())
                 .build());

@@ -1,6 +1,6 @@
 package com.example.demo.validate;
 
-import com.example.demo.dao.CategoryRequestDao;
+import com.example.demo.dto.request.CategoryRequestDao;
 import org.springframework.util.StringUtils;
 
 public class ValidateCategory {
