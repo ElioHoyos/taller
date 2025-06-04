@@ -2,7 +2,7 @@
 ## RUC: 10612775177
 * Este proyecto es un sistema completo de gestión de inventario desarrollado con Spring Boot en el backend y React en el frontend. Permite realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar).
 ## Tecnologias
-* Java 17 ![image](https://icons8.com/icon/lTKW3iI3wIT0/java)
+* Java 17 ![image](https://img.icons8.com/3d-fluency/94/java-coffee-cup-logo.png)
 * Spring boot
 * ApiRestFull
 * Lombok
