@@ -7,7 +7,13 @@
   ![image](https://img.icons8.com/3d-fluency/94/java-coffee-cup-logo.png)
   
 * Spring boot
+  
+  ![image](https://img.icons8.com/color/48/spring-logo.png)
+  
 * ApiRestFull
+  
+  ![image](https://img.icons8.com/ios/50/api-settings.png)
+  
 * Lombok
 * Programación Funcional
 * JPA
