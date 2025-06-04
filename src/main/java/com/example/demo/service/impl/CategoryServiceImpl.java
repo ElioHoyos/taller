@@ -4,6 +4,7 @@ import com.example.demo.dto.CategoryDto;
 import com.example.demo.dto.request.CategoryRequestDao;
 import com.example.demo.entity.Category;
 import com.example.demo.exception.CategoryNameEmptyException;
+import com.example.demo.exception.NotFoundException;
 import com.example.demo.repository.CategoryRepository;
 import com.example.demo.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +59,60 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void delete(Long id) {
+    public void updateCategory(CategoryRequestDao categoryRequestDao) {
+        // Validar ID
+        if (categoryRequestDao.getId() == null) {
+            throw new IllegalArgumentException("ID de categoría no proporcionado");
+        }
 
+        // Buscar categoría existente
+        Category existingCategory = categoryRepository.findById(categoryRequestDao.getId())
+                .orElseThrow(() -> new NotFoundException("Categoría no encontrada"));
+
+        // Validar nombre
+        if (categoryRequestDao.getName() == null || categoryRequestDao.getName().trim().isEmpty()) {
+            throw new CategoryNameEmptyException("El nombre de la categoría no debe estar vacío");
+        }
+
+        // Verificar si el nuevo nombre ya existe en otra categoría
+        Optional<Category> duplicateCategory = categoryRepository.findByNameAndIdNot(
+                categoryRequestDao.getName(),
+                categoryRequestDao.getId()
+        );
+
+        if (duplicateCategory.isPresent()) {
+            throw new CategoryNameEmptyException.CategoryNameDuplicateException(
+                    "El nombre de la categoría ya existe en otra categoría"
+            );
+        }
+
+        // Actualizar campos
+        existingCategory.setName(categoryRequestDao.getName());
+        existingCategory.setState(categoryRequestDao.getState());
+        existingCategory.setDate_modified(LocalDate.now());
+
+        categoryRepository.save(existingCategory);
     }
-}
+
+    @Override
+    public void delete(Long id) {
+        // Verificar si la categoría existe
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Categoría no encontrada"));
+
+        categoryRepository.delete(category);
+    }
+
+    @Override
+    public void toggleState(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Categoría no encontrada"));
+
+        // Cambiar estado (activo/inactivo)
+        category.setState(!category.getState());
+        category.setDate_modified(LocalDate.now());
+
+        categoryRepository.save(category);
+    }
+    }
+

@@ -12,6 +12,8 @@ public interface CategoryService {
     List<CategoryDto> getCategories();
     Optional<Category> getCategory(Long id);
     void saveCategory(CategoryRequestDao categoryRequestDao);
+    void updateCategory(CategoryRequestDao categoryRequestDao);
     void delete(Long id);
+    void toggleState(Long id);
 
 }
