@@ -1,19 +1,18 @@
 package com.example.demo.controller;
+
 import com.example.demo.dto.CategoryDto;
 import com.example.demo.dto.request.CategoryRequestDao;
 import com.example.demo.entity.Category;
 import com.example.demo.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,17 +22,60 @@ import java.util.Optional;
 @Validated
 public class CategoryController {
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @GetMapping("/categoryView")
-    public List<CategoryDto> getAllCategory(){
-        return categoryService.getCategories();
+    @Autowired
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
     }
 
-    @GetMapping("/{Id}")
-    public Optional<Category> getById(@PathVariable("Id") Long Id){
-        return categoryService.getCategory(Id);
+    // Endpoint paginado con Pageable (manteniendo por si se usa sin searchTerm)
+    @GetMapping("/paged")
+    public ResponseEntity<Page<CategoryDto>> getCategoriesPaged(
+            @PageableDefault(size = 10, sort = "dateCreated", direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<CategoryDto> categories = categoryService.getCategories(pageable);
+        return ResponseEntity.ok(categories);
+    }
+
+    // Endpoint sin paginación (manteniendo por si se usa sin paginación)
+    @GetMapping
+    public ResponseEntity<List<CategoryDto>> getAllCategories() {
+        List<CategoryDto> categories = categoryService.getCategories();
+        return ResponseEntity.ok(categories);
+    }
+
+    // Endpoint paginado con parámetros individuales y nuevo parámetro searchTerm
+    @GetMapping("/categoryView")
+    public ResponseEntity<Page<CategoryDto>> getCategoriesPagedWithParams(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "dateCreated") String sort,
+            @RequestParam(defaultValue = "DESC") String direction,
+            @RequestParam(required = false) String searchTerm) { // Nuevo parámetro de búsqueda
+
+        // Validar campos de ordenamiento permitidos
+        if (!isValidSortField(sort)) {
+            throw new IllegalArgumentException("Campo de ordenamiento inválido: " + sort);
+        }
+
+        Sort.Direction sortDirection = direction.equalsIgnoreCase("ASC") ?
+                Sort.Direction.ASC : Sort.Direction.DESC;
+
+        Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
+        Page<CategoryDto> categories = categoryService.getCategories(searchTerm, pageable); // Pasar searchTerm al servicio
+        return ResponseEntity.ok(categories);
+    }
+
+    // Método para validar campos de ordenamiento (sin cambios)
+    private boolean isValidSortField(String sort) {
+        return List.of("id", "name", "state", "dateCreated", "dateModified")
+                .contains(sort);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Category> getById(@PathVariable("id") Long id) {
+        Optional<Category> category = categoryService.getCategory(id);
+        return category.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping
@@ -42,7 +84,7 @@ public class CategoryController {
     }
 
     @PostMapping
-    public void saveCategory(@RequestBody CategoryRequestDao categoryRequestDao){
+    public void saveCategory(@RequestBody CategoryRequestDao categoryRequestDao) {
         categoryService.saveCategory(categoryRequestDao);
     }
 
@@ -51,9 +93,8 @@ public class CategoryController {
         categoryService.toggleState(id);
     }
 
-    @DeleteMapping("/{Id}")
-    public void deleteCategory(@PathVariable("Id") Long Id){
-        categoryService.delete(Id);
+    @DeleteMapping("/{id}")
+    public void deleteCategory(@PathVariable("id") Long id) {
+        categoryService.delete(id);
     }
-
 }

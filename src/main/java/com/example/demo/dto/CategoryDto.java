@@ -14,6 +14,6 @@ public class CategoryDto implements Serializable {
     private Long id;
     private String name;
     private Boolean state;
-    private LocalDate date_modified;
-    private LocalDate date_created;
+    private LocalDate dateCreated;
+    private LocalDate dateModified;
 }

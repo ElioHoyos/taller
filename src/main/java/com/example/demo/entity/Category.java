@@ -19,6 +19,9 @@ public class Category {
     private Long id;
     private String name;
     private Boolean state;
-    private LocalDate date_modified;
-    private LocalDate date_created;
+    @Column(name = "date_created")
+    private LocalDate dateCreated;
+
+    @Column(name = "date_modified")
+    private LocalDate dateModified;
 }
