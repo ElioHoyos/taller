@@ -4,6 +4,7 @@ import com.example.demo.dto.CategoryDto;
 import com.example.demo.dto.request.CategoryRequestDao;
 import com.example.demo.entity.Category;
 import com.example.demo.exception.CategoryNameEmptyException;
+import com.example.demo.exception.CategoryNameEmptyException.CategoryNameDuplicateException; // Import added
 import com.example.demo.exception.NotFoundException;
 import com.example.demo.repository.CategoryRepository;
 import com.example.demo.service.CategoryService;
@@ -30,19 +31,9 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Page<CategoryDto> getCategories(Pageable pageable) {
-        // Usa el método que tiene término de búsqueda, pasando null para obtener todas
-        return getCategories(null, pageable);
-    }
-
-    @Override
-    public Page<CategoryDto> getCategories(String searchTerm, Pageable pageable) {
-        Page<Category> categoriesPage;
-        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-            categoriesPage = categoryRepository.findByNameContainingIgnoreCase(searchTerm, pageable);
-        } else {
-            categoriesPage = categoryRepository.findAll(pageable); // findAll de JpaRepository para paginación sin filtro
-        }
-        return convertToDtoPage(categoriesPage, pageable);
+        // More concise way to convert Page<Category> to Page<CategoryDto>
+        return categoryRepository.findAll(pageable)
+                .map(this::convertToDto);
     }
 
     @Override
@@ -52,6 +43,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .collect(Collectors.toList());
     }
 
+    // This method is no longer strictly needed if using .map() directly on the Page
     private Page<CategoryDto> convertToDtoPage(Page<Category> categoriesPage, Pageable pageable) {
         List<CategoryDto> categoryDtos = categoriesPage.getContent().stream()
                 .map(this::convertToDto)
@@ -82,8 +74,9 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         if (categoryRepository.findByName(categoryRequestDao.getName()).isPresent()) {
-            throw new CategoryNameEmptyException.CategoryNameDuplicateException("El nombre de la categoría ya existe");
+            throw new CategoryNameDuplicateException("El nombre de la categoría ya existe"); // Use specific duplicate exception
         }
+
 
         categoryRepository.save(Category.builder()
                 .name(categoryRequestDao.getName())
@@ -112,7 +105,7 @@ public class CategoryServiceImpl implements CategoryService {
         );
 
         if (duplicateCategory.isPresent()) {
-            throw new CategoryNameEmptyException.CategoryNameDuplicateException(
+            throw new CategoryNameDuplicateException( // Use specific duplicate exception
                     "El nombre de la categoría ya existe en otra categoría"
             );
         }

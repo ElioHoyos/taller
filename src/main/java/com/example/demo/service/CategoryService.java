@@ -11,13 +11,10 @@ import java.util.Optional;
 
 public interface CategoryService {
 
-    // Método para paginación sin término de búsqueda (original)
+    // Método con paginación
     Page<CategoryDto> getCategories(Pageable pageable);
 
-    // Nuevo método para paginación con término de búsqueda
-    Page<CategoryDto> getCategories(String searchTerm, Pageable pageable);
-
-    List<CategoryDto> getCategories(); // Método para obtener todas sin paginación
+    List<CategoryDto> getCategories();
     Optional<Category> getCategory(Long id);
     void saveCategory(CategoryRequestDao categoryRequestDao);
     void updateCategory(CategoryRequestDao categoryRequestDao);
