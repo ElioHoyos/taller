@@ -4,13 +4,12 @@ import com.example.demo.dto.CategoryDto;
 import com.example.demo.dto.request.CategoryRequestDao;
 import com.example.demo.entity.Category;
 import com.example.demo.exception.CategoryNameEmptyException;
-import com.example.demo.exception.CategoryNameEmptyException.CategoryNameDuplicateException; // Import added
 import com.example.demo.exception.NotFoundException;
 import com.example.demo.repository.CategoryRepository;
 import com.example.demo.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageImpl; // Mantener si se usa PageImpl en otro lugar, pero no es necesario para .map()
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +30,6 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Page<CategoryDto> getCategories(Pageable pageable) {
-        // More concise way to convert Page<Category> to Page<CategoryDto>
         return categoryRepository.findAll(pageable)
                 .map(this::convertToDto);
     }
@@ -41,15 +39,6 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-    }
-
-    // This method is no longer strictly needed if using .map() directly on the Page
-    private Page<CategoryDto> convertToDtoPage(Page<Category> categoriesPage, Pageable pageable) {
-        List<CategoryDto> categoryDtos = categoriesPage.getContent().stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(categoryDtos, pageable, categoriesPage.getTotalElements());
     }
 
     private CategoryDto convertToDto(Category category) {
@@ -70,13 +59,12 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void saveCategory(CategoryRequestDao categoryRequestDao) {
         if (categoryRequestDao.getName() == null || categoryRequestDao.getName().trim().isEmpty()) {
-            throw new CategoryNameEmptyException("El nombre de la categoría no debe estar vacío");
+            throw new CategoryNameEmptyException("El nombre de la categoría no debe estar vacío.");
         }
 
         if (categoryRepository.findByName(categoryRequestDao.getName()).isPresent()) {
-            throw new CategoryNameDuplicateException("El nombre de la categoría ya existe"); // Use specific duplicate exception
+            throw new CategoryNameEmptyException.CategoryNameDuplicateException("El nombre de la categoría ya existe.");
         }
-
 
         categoryRepository.save(Category.builder()
                 .name(categoryRequestDao.getName())
@@ -89,14 +77,14 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void updateCategory(CategoryRequestDao categoryRequestDao) {
         if (categoryRequestDao.getId() == null) {
-            throw new IllegalArgumentException("ID de categoría no proporcionado");
+            throw new IllegalArgumentException("ID de categoría no proporcionado.");
         }
 
         Category existingCategory = categoryRepository.findById(categoryRequestDao.getId())
-                .orElseThrow(() -> new NotFoundException("Categoría no encontrada"));
+                .orElseThrow(() -> new NotFoundException("Categoría no encontrada."));
 
         if (categoryRequestDao.getName() == null || categoryRequestDao.getName().trim().isEmpty()) {
-            throw new CategoryNameEmptyException("El nombre de la categoría no debe estar vacío");
+            throw new CategoryNameEmptyException("El nombre de la categoría no debe estar vacío.");
         }
 
         Optional<Category> duplicateCategory = categoryRepository.findByNameAndIdNot(
@@ -105,8 +93,8 @@ public class CategoryServiceImpl implements CategoryService {
         );
 
         if (duplicateCategory.isPresent()) {
-            throw new CategoryNameDuplicateException( // Use specific duplicate exception
-                    "El nombre de la categoría ya existe en otra categoría"
+            throw new CategoryNameEmptyException.CategoryNameDuplicateException(
+                    "El nombre de la categoría ya existe en otra categoría."
             );
         }
 
@@ -120,7 +108,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void delete(Long id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Categoría no encontrada"));
+                .orElseThrow(() -> new NotFoundException("Categoría no encontrada."));
 
         categoryRepository.delete(category);
     }
@@ -128,11 +116,18 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void toggleState(Long id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Categoría no encontrada"));
+                .orElseThrow(() -> new NotFoundException("Categoría no encontrada."));
 
         category.setState(!category.getState());
         category.setDateModified(LocalDate.now());
 
         categoryRepository.save(category);
+    }
+
+    // NUEVO: Implementación del método de búsqueda por nombre
+    @Override
+    public Page<CategoryDto> searchCategoriesByName(String name, Pageable pageable) {
+        return categoryRepository.findByNameContainingIgnoreCase(name, pageable)
+                .map(this::convertToDto);
     }
 }

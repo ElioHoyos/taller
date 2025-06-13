@@ -13,13 +13,10 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Optional<Category> findByName(String name);
     Optional<Category> findByNameAndIdNot(String name, Long id);
 
-    // Método de paginación automático (ya incluido en JpaRepository)
-    // Page<Category> findAll(Pageable pageable); // Este método ya no será la principal forma de obtener paginado si hay búsqueda
-
-    // Versión con filtro por estado
+    // Versión con filtro por estado (si aún la usas, de lo contrario podrías quitarla)
     Page<Category> findByState(Boolean state, Pageable pageable);
 
-    // AÑADIDO: Método para buscar categorías por nombre (ignorando mayúsculas/minúsculas) y paginar
+    // MÉTODO CLAVE PARA LA BÚSQUEDA: Asegúrate de que existe
     Page<Category> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
     // Opcional: Si quieres una búsqueda más compleja que incluya el estado, podrías hacer algo como:

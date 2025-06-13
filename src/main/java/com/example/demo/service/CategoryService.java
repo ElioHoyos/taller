@@ -21,4 +21,6 @@ public interface CategoryService {
     void delete(Long id);
     void toggleState(Long id);
 
+    // NUEVO: Método para buscar categorías por nombre (para el buscador en tiempo real)
+    Page<CategoryDto> searchCategoriesByName(String name, Pageable pageable);
 }
