@@ -2,42 +2,55 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.ArticleDto;
 import com.example.demo.dto.request.ArticleRequestDto;
-import com.example.demo.entity.Article;
 import com.example.demo.service.ArticleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
-
 @RestController
-@RequestMapping(path = "api/v1/article")
+@RequestMapping("api/v1/article")
+@RequiredArgsConstructor
 public class ArticleController {
 
-    @Autowired
-    private ArticleService articleService;
+    private final ArticleService articleService;
 
-    @GetMapping("/listArticle")
-    public List<ArticleDto> getAllArticle(){
-        return articleService.getArticles();
+    @GetMapping
+    public ResponseEntity<Page<ArticleDto>> getAllArticle(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search) {
+
+        return ResponseEntity.ok(articleService.getArticles(page, size, search));
     }
 
-    @GetMapping("/{Id}")
-    public Optional<Article> getById(@PathVariable("Id") Long Id){
-        return articleService.getArticle(Id);
+    @GetMapping("/{id}")
+    public ResponseEntity<ArticleDto> getById(@PathVariable Long id) {
+        return articleService.getArticle(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public void saveArticleToCategory(@RequestBody ArticleRequestDto requestDao){
+    public ResponseEntity<Void> createArticle(@RequestBody ArticleRequestDto requestDao) {
         articleService.saveArticleToCategory(requestDao);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ArticleDto> updateArticle(@PathVariable("id") Long id, @RequestBody ArticleDto articleDto) {
-        Optional<ArticleDto> updatedArticle = articleService.updateArticle(id, articleDto);
+    public ResponseEntity<ArticleDto> updateArticle(
+            @PathVariable Long id,
+            @RequestBody ArticleRequestDto articleDto) {
 
-        return updatedArticle.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return articleService.updateArticle(id, articleDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteArticle(@PathVariable Long id) {
+        articleService.deleteArticle(id);
+        return ResponseEntity.noContent().build();
+    }
 }

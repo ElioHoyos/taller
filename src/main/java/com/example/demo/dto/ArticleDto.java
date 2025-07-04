@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -12,7 +13,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ArticleDto {
+public class ArticleDto implements Serializable {
     private Long id;
     private String code;
     private Long category_id;

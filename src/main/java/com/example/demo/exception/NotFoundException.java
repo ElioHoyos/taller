@@ -4,13 +4,15 @@ import java.util.List;
 
 @Getter
 public class NotFoundException extends RuntimeException {
-    private List<NotFoundException> messages;
+    private final List<NotFoundException> messages;
 
     public NotFoundException(String message) {
         super(message);
+        this.messages = null;
     }
 
     public NotFoundException(List<NotFoundException> messages) {
+        super(messages.get(0).getMessage());
         this.messages = messages;
     }
 }
