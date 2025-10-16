@@ -1,5 +1,6 @@
 package com.example.demo.controller.handler;
 
+import com.example.demo.exception.CategoryNameEmptyException;
 import com.example.demo.exception.ValidationException;
 import com.example.demo.exception.NotFoundException;
 import com.example.demo.exception.ErrorResponse;
@@ -110,4 +111,33 @@ public class GlobalExceptionHandler {
         // - Respuesta consistente para errores de lógica
         return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
+
+    /**
+     * ExceptionGlobal Category
+     */
+
+    @ExceptionHandler(CategoryNameEmptyException.class)
+    public ResponseEntity<Map<String, String>> handleCategoryNameEmptyException(CategoryNameEmptyException ex) {
+        Map<String, String> body = new HashMap<>();
+        body.put("Adventencia", ex.getMessage());
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(CategoryNameEmptyException.CategoryNameDuplicateException.class)
+    public ResponseEntity<Map<String, String>> handleCategoryNameDuplicateException(CategoryNameEmptyException.CategoryNameDuplicateException ex) {
+        Map<String, String> body = new HashMap<>();
+        body.put("Adventencia", ex.getMessage());
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrityViolationException(
+            org.springframework.dao.DataIntegrityViolationException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("Adventencia", "El nombre de la categoría ya existe");
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+
+
 }

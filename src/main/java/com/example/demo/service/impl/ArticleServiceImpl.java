@@ -22,6 +22,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
  * Implementación del servicio para gestión de artículos.
  *
@@ -74,6 +78,11 @@ public class ArticleServiceImpl implements ArticleService {
                 .map(this::convertToDto);
     }
 
+    @Override
+    public Optional<ArticleDto> getByCode(String code) {
+        return articleRepository.findByCode(code).map(this::convertToDto);
+    }
+
     /**
      * Crea un nuevo artículo.
      *
@@ -88,16 +97,28 @@ public class ArticleServiceImpl implements ArticleService {
         Map<String, String> errors = new HashMap<>();
         validateFields(requestDto, errors);
         validateBusinessRules(requestDto, errors, null);
+        if (!errors.isEmpty()) throw new ValidationException(errors);
 
-        if (!errors.isEmpty()) {
-            // Lanzar excepción con todos los errores
-            throw new ValidationException(errors);
+        // 1) Resolver código sin mutar el DTO
+        final String resolvedCode = (requestDto.getCode() == null || requestDto.getCode().trim().isEmpty())
+                ? generateUniqueEan13()
+                : requestDto.getCode().trim();
+
+        // 2) Si vino informado, doble-check unicidad por carreras
+        if (requestDto.getCode() != null && !requestDto.getCode().trim().isEmpty()) {
+            if (articleRepository.existsByCode(resolvedCode)) {
+                errors.put("codigo producto", "El código del artículo ya existe");
+                throw new ValidationException(errors);
+            }
         }
 
         Category category = categoryRepository.findById(requestDto.getCategory_id())
                 .orElseThrow(() -> new NotFoundException("Categoría no encontrada"));
 
+        // 3) Construyes la entidad y le asignas el code resuelto
         Article article = buildArticle(requestDto, category);
+        article.setCode(resolvedCode);
+
         articleRepository.save(article);
     }
 
@@ -112,16 +133,23 @@ public class ArticleServiceImpl implements ArticleService {
     @Transactional
     public Optional<ArticleDto> updateArticle(Long id, ArticleRequestDto requestDto) {
         Map<String, String> errors = new HashMap<>();
-        validateFields(requestDto, errors);
-        validateBusinessRules(requestDto, errors, id);
-
-        if (!errors.isEmpty()) {
-            throw new ValidationException(errors);
-        }
+        validateFields(requestDto, errors);            // si viene code, valida EAN-13
+        validateBusinessRules(requestDto, errors, id); // si viene code, valida unicidad contra otros
+        if (!errors.isEmpty()) throw new ValidationException(errors);
 
         return articleRepository.findById(id)
                 .map(article -> {
+                    // Resolver código sin mutar el DTO
+                    final String resolvedCode = (requestDto.getCode() == null || requestDto.getCode().trim().isEmpty())
+                            ? article.getCode()
+                            : requestDto.getCode().trim();
+
+                    // Asigna el código resuelto a la entidad
+                    article.setCode(resolvedCode);
+
+                    // Actualiza el resto de campos
                     updateArticleFields(article, requestDto);
+
                     return convertToDto(articleRepository.save(article));
                 });
     }
@@ -176,9 +204,12 @@ public class ArticleServiceImpl implements ArticleService {
      * - Acumulación de múltiples errores
      */
     private void validateFields(ArticleRequestDto dto, Map<String, String> errors) {
-        // Validación de código
-        if (dto.getCode() == null || dto.getCode().trim().isEmpty()) {
-            errors.put("codigo producto", "El código es obligatorio");
+        // Código: opcional (si falta, se genera). Si viene, validar EAN-13.
+        if (dto.getCode() != null && !dto.getCode().trim().isEmpty()) {
+            String code = dto.getCode().trim();
+            if (!isValidEan13(code)) {
+                errors.put("codigo producto", "El código debe ser EAN-13 válido (13 dígitos con dígito verificador)");
+            }
         }
 
         // Validación de cantidad
@@ -202,11 +233,23 @@ public class ArticleServiceImpl implements ArticleService {
             errors.put("Precio de venta", "El precio de venta debe ser mayor a 0");
         }
 
-        // Validación de relación entre precios
+        // Relación entre precios
         if (dto.getPurchase_price() != null && dto.getSale_price() != null &&
                 dto.getSale_price().compareTo(dto.getPurchase_price()) <= 0) {
             errors.put("Precio de venta", "Debe ser mayor que el precio de compra");
         }
+
+        // Validación de fecha de vencimiento: obligatorio y > hoy (no hoy, no pasado)
+        if (dto.getExpiration_date() == null) {
+            errors.put("fecha de vencimiento", "La fecha de vencimiento es obligatoria");
+        } else {
+            LocalDate hoy = LocalDate.now();
+            // no debe ser hoy ni una fecha pasada
+            if (!dto.getExpiration_date().isAfter(hoy)) {
+                errors.put("fecha de vencimiento", "No se permite la fecha actual ni fechas pasadas; debe ser posterior a hoy");
+            }
+        }
+
     }
 
     /**
@@ -265,7 +308,9 @@ public class ArticleServiceImpl implements ArticleService {
      * - Manejo de relaciones
      */
     private void updateArticleFields(Article article, ArticleRequestDto dto) {
-        article.setCode(dto.getCode());
+        if (dto.getCode() != null && !dto.getCode().trim().isEmpty()) {
+            article.setCode(dto.getCode().trim());
+        }
         article.setName(dto.getName());
         article.setDescription(dto.getDescription());
         article.setAmount(dto.getAmount());
@@ -274,11 +319,44 @@ public class ArticleServiceImpl implements ArticleService {
         article.setExpiration_date(dto.getExpiration_date());
         article.setDate_modified(LocalDate.now());
 
-        // Actualizar categoría solo si es necesario
         if (dto.getCategory_id() != null) {
             Category category = categoryRepository.findById(dto.getCategory_id())
                     .orElseThrow(() -> new NotFoundException("Categoría no encontrada"));
             article.setCategory(category);
         }
     }
+
+    /** Genera un EAN-13 válido y único consultando la BD para evitar colisiones. */
+    private String generateUniqueEan13() {
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("yyMMddHHmm");
+        for (int i = 0; i < 20; i++) { // algunos reintentos por seguridad
+            String base12 = LocalDateTime.now().format(f)
+                    + String.format("%02d", ThreadLocalRandom.current().nextInt(0, 100));
+            String ean13 = base12 + ean13CheckDigit(base12);
+            if (!articleRepository.existsByCode(ean13)) {
+                return ean13;
+            }
+        }
+        throw new IllegalStateException("No se pudo generar un código de barras único");
+    }
+
+    /** Calcula el dígito verificador de EAN-13 a partir de 12 dígitos. */
+    private String ean13CheckDigit(String base12) {
+        int sumOdd = 0, sumEven = 0; // posiciones desde la izquierda (i=0 -> pos 1 impar)
+        for (int i = 0; i < 12; i++) {
+            int d = base12.charAt(i) - '0';
+            if ((i % 2) == 0) sumOdd += d; else sumEven += d;
+        }
+        int total = sumOdd + sumEven * 3;
+        int mod = total % 10;
+        return String.valueOf((10 - mod) % 10);
+    }
+
+    /** Valida que un string sea EAN-13 correcto (13 dígitos + dígito verificador válido). */
+    private boolean isValidEan13(String code) {
+        if (code == null || !code.matches("\\d{13}")) return false;
+        return code.charAt(12) == ean13CheckDigit(code.substring(0, 12)).charAt(0);
+    }
+
+
 }

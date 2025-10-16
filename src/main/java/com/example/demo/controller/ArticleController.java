@@ -32,6 +32,13 @@ public class ArticleController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/code/{code}")
+    public ResponseEntity<ArticleDto> getByCode(@PathVariable String code) {
+        return articleService.getByCode(code.trim())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping
     public ResponseEntity<Void> createArticle(@RequestBody ArticleRequestDto requestDao) {
         articleService.saveArticleToCategory(requestDao);

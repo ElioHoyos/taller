@@ -77,16 +77,23 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void saveCategory(CategoryRequestDao categoryRequestDao) {
-        if (categoryRequestDao.getName() == null || categoryRequestDao.getName().trim().isEmpty()) {
+        String nombre = categoryRequestDao.getName();
+        if (nombre == null || nombre.trim().isEmpty()) {
             throw new CategoryNameEmptyException("El nombre de la categoría no debe estar vacío");
         }
 
-        if (categoryRepository.findByName(categoryRequestDao.getName()).isPresent()) {
+//        if (categoryRepository.findByName(categoryRequestDao.getName()).isPresent()) {
+//            throw new CategoryNameEmptyException.CategoryNameDuplicateException("El nombre de la categoría ya existe");
+//        }
+        // Normalizar el nombre (recortar y pasar a minúsculas) para comparar correctamente
+        String nombreNormalizado = nombre.trim();
+        Optional<Category> existente = categoryRepository.findByName(nombreNormalizado);
+        if (existente.isPresent() && existente.get().getName().equalsIgnoreCase(nombreNormalizado)) {
             throw new CategoryNameEmptyException.CategoryNameDuplicateException("El nombre de la categoría ya existe");
         }
 
         categoryRepository.save(Category.builder()
-                .name(categoryRequestDao.getName())
+                .name(nombreNormalizado)
                 .state(Boolean.TRUE)
                 .dateModified(LocalDate.now())
                 .dateCreated(LocalDate.now())

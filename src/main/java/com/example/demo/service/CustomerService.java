@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface CustomerService {
 
     List<CustomerDto> getPersons();
-    Optional<CustomerDto> getPerson(Long Id);
+    Optional<CustomerDto> getPerson(Long id);
     void savePerson(CustomerRequestDto requestDao);
 
 }

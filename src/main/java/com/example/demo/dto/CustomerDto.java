@@ -18,7 +18,7 @@ public class CustomerDto {
     private String name;
     @Enumerated(EnumType.STRING)
     private DocumentType document_type;
-    private Long document_number;
+    private String document_number;
     private String cellphone;
     private String email;
     private String address;

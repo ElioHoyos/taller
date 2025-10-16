@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
@@ -32,12 +33,30 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public List<CustomerDto> getPersons() {
-        return List.of();
+        return customerRepository.findAll().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    private CustomerDto convertToDto(Customer customer) {
+        return CustomerDto.builder()
+                .id(customer.getId())
+                .type_person(customer.getType_person())
+                .name(customer.getName())
+                .document_type(customer.getDocument_type())
+                .document_number(customer.getDocument_number())
+                .cellphone(customer.getCellphone())
+                .email(customer.getEmail())
+                .address(customer.getAddress())
+                .state(Boolean.TRUE)
+                .date_modified(customer.getDate_modified())
+                .date_created(customer.getDate_created())
+                .build();
     }
 
     @Override
-    public Optional<CustomerDto> getPerson(Long Id) {
-        return Optional.empty();
+    public Optional<CustomerDto> getPerson(Long id) {
+        return customerRepository.findById(id).map(this::convertToDto);
     }
 
     @Override

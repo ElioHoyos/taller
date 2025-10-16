@@ -6,13 +6,24 @@ import java.util.List;
 public class EmailValidator {
 
     public List<String> validate(String email) {
-        List<String> errorMessages = new ArrayList<>();
-        String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+        List<String> errors = new ArrayList<>();
 
-        if (email == null || !email.matches(emailRegex)) {
-            errorMessages.add("El correo electrónico debe ser en el siguiente formato: ejemplo@gmail.com.");
+        // Mensaje pedido por el usuario (claro y único)
+        final String invalidMsg = "El correo electrónico no es válido";
+
+        if (email == null) {
+            errors.add(invalidMsg);
+            return errors;
         }
 
-        return errorMessages;
+        String value = email.trim();
+        // Regex simple y suficiente para la mayoría de casos
+        String emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+
+        if (!value.matches(emailRegex)) {
+            errors.add(invalidMsg);
+        }
+
+        return errors;
     }
 }
