@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("api/v1/article")
 @RequiredArgsConstructor
@@ -20,9 +22,10 @@ public class ArticleController {
     public ResponseEntity<Page<ArticleDto>> getAllArticle(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search) {
-
-        return ResponseEntity.ok(articleService.getArticles(page, size, search));
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "date_created") String sort,   // si quisieras
+            @RequestParam(defaultValue = "DESC") String direction) {     // si quisieras
+        return ResponseEntity.ok(articleService.getArticles(page, size, search /*, sort, direction*/));
     }
 
     @GetMapping("/{id}")
@@ -53,6 +56,19 @@ public class ArticleController {
         return articleService.updateArticle(id, articleDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+    //reactivar/desactivar.
+    @PatchMapping("/{id}/toggle-state")
+    public ResponseEntity<ArticleDto> toggleState(@PathVariable Long id) {
+        return articleService.toggleState(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/generate-code")
+    public ResponseEntity<Map<String, String>> generateCode() {
+        String code = articleService.generateNewCode();
+        return ResponseEntity.ok(Map.of("code", code));
     }
 
     @DeleteMapping("/{id}")

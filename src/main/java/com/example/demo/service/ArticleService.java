@@ -13,4 +13,8 @@ public interface ArticleService {
     void saveArticleToCategory(ArticleRequestDto requestDao);
     Optional<ArticleDto> updateArticle(Long id, ArticleRequestDto articleDto);
     void deleteArticle(Long id);
+    //reactivar/desactivar.
+    Optional<ArticleDto> toggleState(Long id);
+    //codigo de barra
+    String generateNewCode();
 }

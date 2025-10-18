@@ -164,11 +164,28 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     @Transactional
     public void deleteArticle(Long id) {
-        Article article = articleRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Artículo no encontrado"));
-        article.setState(false);
-        article.setDate_modified(LocalDate.now());
-        articleRepository.save(article);
+        if (!articleRepository.existsById(id)) {
+            throw new NotFoundException("Artículo no encontrado");
+        }
+        articleRepository.deleteById(id);
+    }
+
+    //reactivar/desactivar.
+    @Override
+    @Transactional
+    public Optional<ArticleDto> toggleState(Long id) {
+        return articleRepository.findById(id).map(article -> {
+            boolean current = Boolean.TRUE.equals(article.getState());
+            article.setState(!current);
+            article.setDate_modified(LocalDate.now());
+            Article saved = articleRepository.save(article);
+            return convertToDto(saved);
+        });
+    }
+
+    @Override
+    public String generateNewCode() {
+        return generateUniqueEan13();
     }
 
     /**
@@ -205,11 +222,14 @@ public class ArticleServiceImpl implements ArticleService {
      */
     private void validateFields(ArticleRequestDto dto, Map<String, String> errors) {
         // Código: opcional (si falta, se genera). Si viene, validar EAN-13.
-        if (dto.getCode() != null && !dto.getCode().trim().isEmpty()) {
+        if (dto.getCode() != null) {
             String code = dto.getCode().trim();
-            if (!isValidEan13(code)) {
-                errors.put("codigo producto", "El código debe ser EAN-13 válido (13 dígitos con dígito verificador)");
+            if (!code.isEmpty() && code.matches("\\d{13}")) {
+                if (!isValidEan13(code)) {
+                    errors.put("codigo producto", "El EAN-13 ingresado no es válido (dígito verificador incorrecto)");
+                }
             }
+            // Si no son 13 dígitos, no imponemos la norma EAN; queda como código manual.
         }
 
         // Validación de cantidad

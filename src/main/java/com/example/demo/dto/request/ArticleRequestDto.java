@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @Builder
 @Getter
 public class ArticleRequestDto {
-    @NotBlank(message = "El código es obligatorio")
+    //@NotBlank(message = "El código es obligatorio")
     private String code;
 
     @NotNull(message = "La categoría es obligatoria")
