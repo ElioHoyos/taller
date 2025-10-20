@@ -1,6 +1,7 @@
 package com.example.demo.controller.handler;
 
 import com.example.demo.exception.CategoryNameEmptyException;
+import com.example.demo.exception.ExternalLookupException;
 import com.example.demo.exception.ValidationException;
 import com.example.demo.exception.NotFoundException;
 import com.example.demo.exception.ErrorResponse;
@@ -138,6 +139,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    //Validación Customer
+    @ExceptionHandler(com.example.demo.exception.DocumentValidationException.class)
+    public ResponseEntity<Map<String, Object>> handleDocumentValidation(
+            com.example.demo.exception.DocumentValidationException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("Advertencia", ex.getErrorMessages());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
 
+    //api reniec
+    @ExceptionHandler(ExternalLookupException.class)
+    public ResponseEntity<Map<String, Object>> handleExternalLookup(ExternalLookupException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("Advertencia", ex.getMessage());
+        return ResponseEntity.status(ex.getStatus() >= 400 ? ex.getStatus() : 400).body(body);
+    }
 
 }

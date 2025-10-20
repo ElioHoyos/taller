@@ -1,29 +1,22 @@
 package com.example.demo.validate;
 
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
+@Component
 public class EmailValidator {
+    private static final Pattern P =
+            Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
     public List<String> validate(String email) {
         List<String> errors = new ArrayList<>();
-
-        // Mensaje pedido por el usuario (claro y único)
-        final String invalidMsg = "El correo electrónico no es válido";
-
-        if (email == null) {
-            errors.add(invalidMsg);
-            return errors;
+        if (email == null || email.isBlank()) return errors; // opcional
+        if (!P.matcher(email.trim()).matches()) {
+            errors.add("El correo electrónico no es válido");
         }
-
-        String value = email.trim();
-        // Regex simple y suficiente para la mayoría de casos
-        String emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
-
-        if (!value.matches(emailRegex)) {
-            errors.add(invalidMsg);
-        }
-
         return errors;
     }
 }

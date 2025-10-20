@@ -10,6 +10,6 @@ public interface CustomerService {
 
     List<CustomerDto> getPersons();
     Optional<CustomerDto> getPerson(Long id);
-    void savePerson(CustomerRequestDto requestDao);
-
+    //void savePerson(CustomerRequestDto requestDao);
+    CustomerDto savePerson(CustomerRequestDto requestDao);
 }

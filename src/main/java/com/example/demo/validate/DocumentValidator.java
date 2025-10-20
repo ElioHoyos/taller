@@ -1,45 +1,48 @@
 package com.example.demo.validate;
 
 import com.example.demo.entity.enums.DocumentType;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class DocumentValidator {
 
     public List<String> validate(DocumentType documentType, String documentNumber) {
         List<String> errors = new ArrayList<>();
 
-        // null-safety básico
         if (documentType == null) {
             errors.add("Tipo de documento inválido");
             return errors;
         }
-        if (documentNumber == null) {
+        if (documentNumber == null || documentNumber.trim().isEmpty()) {
             errors.add("El documento no puede estar vacío");
             return errors;
         }
 
-        // normalizamos
-        String number = documentNumber.trim();
+        String n = documentNumber.trim();
+
+        // Solo dígitos
+        if (!n.matches("\\d+")) {
+            errors.add("El documento solo debe contener dígitos");
+            return errors;
+        }
 
         switch (documentType) {
             case DNI:
-                // Requisito del usuario: devolver exactamente este texto cuando no tenga 8
-                if (number.length() != 8) {
+                if (!n.matches("\\d{8}")) {
                     errors.add("El DNI debe tener 8 digitos");
                 }
                 break;
             case RUC:
-                // Requisito: 11 dígitos exactos
-                if (number.length() != 11) {
-                    errors.add("El RUC debe tener 11 digitos");
+                if (!n.matches("\\d{11}")) {
+                    errors.add("El documento RUC debe tener 11 digitos");
                 }
                 break;
             default:
                 errors.add("Tipo de documento inválido");
         }
-
         return errors;
     }
 }

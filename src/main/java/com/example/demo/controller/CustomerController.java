@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -33,8 +34,10 @@ public class CustomerController {
 
     // CREAR (se mantiene void)
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public void savePerson(@RequestBody CustomerRequestDto person){
-        customerService.savePerson(person);
+    public ResponseEntity<CustomerDto> savePerson(@RequestBody CustomerRequestDto person){
+        CustomerDto created = customerService.savePerson(person);
+        return ResponseEntity
+                .created(URI.create("/api/v1/person/" + created.getId()))
+                .body(created);
     }
 }
