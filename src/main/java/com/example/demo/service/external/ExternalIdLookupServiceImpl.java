@@ -23,12 +23,8 @@ public class ExternalIdLookupServiceImpl implements ExternalIdLookupService {
 
     @Value("${external.id.base-url}")
     private String baseUrl;
-
-    // Debe ser el token de apis.net.pe tipo: apis-token-1.XXXXXXXX
     @Value("${external.id.token}")
     private String token;
-
-    // apis.net.pe suele exigir este header en sus ejemplos
     @Value("${external.id.referer:https://apis.net.pe/consulta-dni-api}")
     private String referer;
 
@@ -38,8 +34,6 @@ public class ExternalIdLookupServiceImpl implements ExternalIdLookupService {
         if (dni == null || !dni.matches("\\d{8}")) {
             throw new ExternalLookupException("El DNI debe tener 8 digitos", 400);
         }
-
-        // Usamos la V1 (igual que tu PHP)
         String url = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .path("/v1/dni")
                 .queryParam("numero", dni)
@@ -69,7 +63,6 @@ public class ExternalIdLookupServiceImpl implements ExternalIdLookupService {
                     .build();
 
         } catch (HttpStatusCodeException e) {
-            // Propagamos código real del proveedor para que lo veas en Postman
             throw new ExternalLookupException("Proveedor: " + e.getStatusCode().value()
                     + " " + e.getResponseBodyAsString(), e.getStatusCode().value());
         } catch (Exception e) {

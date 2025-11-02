@@ -1,47 +1,40 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.dto.RolDto;
-import com.example.demo.dto.request.RolRequestDto;
 import com.example.demo.entity.Rol;
-import com.example.demo.exception.RolNameException;
 import com.example.demo.repository.RolRepository;
 import com.example.demo.service.RolService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class RolServiceImpl implements RolService {
 
-    @Autowired
-    private RolRepository rolRepository;
+    private final RolRepository repo;
 
     @Override
-    public List<RolDto> getRoles() {
-        return List.of();
-    }
+    public List<Rol> list() { return repo.findAll(); }
 
     @Override
-    public Optional<Rol> getRol(Long id) {
-        return Optional.empty();
-    }
-
-    @Override
-    public void saveRol(RolRequestDto rolRequestDto) {
-        // Validar que el nombre no esté vacío
-        if (rolRequestDto.getName() == null || rolRequestDto.getName().trim().isEmpty()) {
-            throw new RolNameException("El nombre del rol no debe estar vacío.");
+    public Rol createOrUpdate(Rol r) {
+        if (r.getId() == null) {
+            if (repo.existsByName(r.getName())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rol duplicado");
+            r.setDateCreated(LocalDate.now());
+        } else {
+            if (repo.existsByNameAndIdNot(r.getName(), r.getId())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rol duplicado");
         }
+        r.setDateModified(LocalDate.now());
+        return repo.save(r);
+    }
 
-        // Guardar el rol si la validación pasa
-        rolRepository.save(Rol.builder()
-                .name(rolRequestDto.getName())
-                .description(rolRequestDto.getDescription())
-                .date_modified(LocalDate.now())
-                .date_created(LocalDate.now())
-                .build());
+    @Override
+    public void delete(Long id) {
+        if (!repo.existsById(id)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Rol no existe");
+        repo.deleteById(id);
     }
 }

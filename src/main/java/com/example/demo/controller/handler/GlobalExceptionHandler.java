@@ -16,39 +16,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Manejador global de excepciones para controladores REST.
- *
- * Buenas prácticas implementadas:
- * 1. Centralización del manejo de errores (@RestControllerAdvice)
- * 2. Respuestas estructuradas y consistentes
- * 3. Personalización de mensajes de error para diferentes escenarios
- * 4. Separación de preocupaciones por tipo de excepción
- */
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * Maneja excepciones de validación personalizadas.
-     * Devuelve un mapa detallado de errores con estado HTTP 400.
-     */
+
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<Map<String, String>> handleValidationException(ValidationException ex) {
-        // Buenas prácticas:
-        // - Respuesta estructurada con todos los errores
-        // - Código HTTP específico (400 Bad Request)
         return new ResponseEntity<>(ex.getErrors(), HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * Maneja errores de validación de Spring (@Valid).
-     * Consolida múltiples errores en un solo mensaje.
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        // Buenas prácticas:
-        // - Procesamiento de todos los errores en un solo mensaje
-        // - Mensajes personalizados para campos específicos
         String errorMessage = ex.getBindingResult().getAllErrors().stream()
                 .map(error -> {
                     if (error instanceof FieldError) {
@@ -62,10 +41,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ErrorResponse(errorMessage), HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * Personaliza mensajes de error para campos específicos.
-     * Mejora la claridad para el cliente.
-     */
+
     private String getCustomErrorMessage(String fieldName, String defaultMessage) {
         switch (fieldName) {
             case "amount":
@@ -92,30 +68,16 @@ public class GlobalExceptionHandler {
                 message;
     }
 
-    /**
-     * Maneja recursos no encontrados (404 Not Found).
-     */
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException ex) {
-        // Buenas prácticas:
-        // - Mensaje claro de recurso no encontrado
-        // - Código HTTP adecuado (404)
         return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
-    /**
-     * Maneja argumentos ilegales (400 Bad Request).
-     */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
-        // Buenas prácticas:
-        // - Respuesta consistente para errores de lógica
         return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * ExceptionGlobal Category
-     */
 
     @ExceptionHandler(CategoryNameEmptyException.class)
     public ResponseEntity<Map<String, String>> handleCategoryNameEmptyException(CategoryNameEmptyException ex) {

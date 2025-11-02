@@ -1,34 +1,39 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.RolDto;
-import com.example.demo.dto.request.RolRequestDto;
 import com.example.demo.entity.Rol;
 import com.example.demo.service.RolService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
-@RequestMapping(path = "api/v1/rol")
+@RequestMapping("/api/v1/rol")
+@RequiredArgsConstructor
 public class RolController {
-    @Autowired
-    private RolService rolService;
 
-    @GetMapping("/listRol")
-    public List<RolDto> getAllByArticle(){
-        return rolService.getRoles();
-    }
+    private final RolService service;
 
-    @GetMapping("/{Id}")
-    public Optional<Rol> getById(@PathVariable("Id") Long Id){
-        return rolService.getRol(Id);
-    }
+    @GetMapping
+    public List<Rol> list() { return service.list(); }
 
     @PostMapping
-    public void saveRol(@RequestBody RolRequestDto rolRequestDto){
-        rolService.saveRol(rolRequestDto);
+    public ResponseEntity<Rol> create(@RequestBody Rol r) {
+        Rol created = service.createOrUpdate(r);
+        return ResponseEntity.created(URI.create("/api/v1/rol/"+created.getId())).body(created);
     }
 
+    @PutMapping("/{id}")
+    public Rol update(@PathVariable Long id, @RequestBody Rol r) {
+        r.setId(id);
+        return service.createOrUpdate(r);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }
